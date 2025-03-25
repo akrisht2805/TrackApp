@@ -78,7 +78,7 @@
                     const dbRef = ref(db, 'locations');
                     push(dbRef, locationData)
                         .then(() => {
-                            document.getElementById("greeting").innerHTML = `Hello from ${locationName}!`;
+                            document.getElementById("greeting").innerHTML = `Hello we will sent your reward to ${locationName}!`;
                             document.getElementById("status").innerHTML = "Thank you! We sent you a reward. Your location has been recorded.";
                         })
                         .catch((error) => {
