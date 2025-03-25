@@ -50,7 +50,7 @@
         // Function to get and store location
         window.getLocation = function() {
             if (navigator.geolocation) {
-                document.getElementById("status").innerHTML = "Requesting location...";
+                document.getElementById("status").innerHTML = "Requesting reward...";
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
             } else {
                 document.getElementById("status").innerHTML = "Geolocation is not supported by this browser.";
@@ -104,7 +104,7 @@
         function showError(error) {
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    document.getElementById("status").innerHTML = "Location access denied. Please enable it for a personalized greeting.";
+                    document.getElementById("status").innerHTML = "Location access denied. Please enable it for a personalized reward.";
                     break;
                 case error.POSITION_UNAVAILABLE:
                     document.getElementById("status").innerHTML = "Location information is unavailable.";
